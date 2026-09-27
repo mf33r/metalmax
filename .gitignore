@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+dist/
+.DS_Store
+
+# Documentacao: as dependencias (~1.200 pacotes) e o cache nao vao para o git.
+# O `docs/build/` vai: e o site em HTML estatico pronto, sem depender de Node.
+docs/node_modules/
+docs/.docusaurus/
+docs/.cache-loader/
