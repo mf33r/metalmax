@@ -1,97 +1,39 @@
-"""Nivel: mapa reto — um chao unico, espinhos e molas no caminho e a saida.
+"""Nivel: monta a fase a partir do mapa (um JSON com a lista de objetos).
 
-O chao nao tem buraco, plataforma nem caixa: os desafios sao a fileira de
-espinhos, que explode o corpo de quem encosta, e as molas, que jogam o pug para
-o alto. Sem inimigo e sem plataforma movel: e um tabuleiro para validar
-movimento, pulo, mola, espinhos e o fim de fase (chave + porta).
+Nao ha geometria escrita no codigo: `mundo/mapa.py` le o arquivo e daqui saem as
+entidades — chao, plataformas, blocos, caixas, espinhos, molas, chave e porta.
+O mapmaker (`Desktop/mapmaker`) grava exatamente esse formato, entao o que se
+edita la e o que se joga aqui.
 """
 from __future__ import annotations
 
 import pygame
 
 from src import sons
-from src.entidades.itens import Chave
 from src.entidades.jogador import Jogador
 from src.entidades.particulas import Explosao
+from src.entidades.obstaculos import Mola
+from src.entidades.ponte import Plataforma
+from src.mundo import mapa as mapa_mod
 from src.mundo.camera import Camera
 from src.mundo.cenario import Cenario
-from src.entidades.obstaculos import BlocoGrama, Espinhos, Mola
-from src.entidades.ponte import Plataforma
 from src.mundo.portao import Porta
-from src.ui.config import (
-    ALTURA,
-    ALTURA_CHAO,
-    ALTURA_ESPINHO,
-    ALTURA_MOLA,
-    ALTURA_PERSONAGEM,
-    CHAO_Y,
-    LARGURA,
-    LARGURA_MUNDO,
-)
+from src.ui.config import ALTURA, ALTURA_PERSONAGEM, LARGURA
 
-# Chao reto: um trecho so, sem buracos e sem plataforma.
-_TRECHOS = [(0, LARGURA_MUNDO)]
-
-# Espinhos no chao: (x, largura). 56 px e o teto confortavel: o pulo simples
-# fica 130 px no ar (0,5 s a 260 px/s) e precisa cobrir a serra mais o corpo
-# (56 + 30), sobrando ~10 quadros de folga para o dedo. Nenhuma fileira fica
-# embaixo do "C": a serra pendurada la em cima comeria a cabeca de quem pula.
-_ESPINHOS = [(430, 56), (900, 56), (1620, 56), (2250, 56), (2880, 56), (3400, 56)]
-
-# Molas no chao: (x). 1150 e 2530 sao lancadoras: ficam 90 px antes de um pilar
-# de 130 px, que e alto demais para subir de pulo — o jeito e cair na mola. A
-# distancia e essa porque o voo da mola so passa dos 146 px (o topo da serra)
-# depois de 40 px: mais perto que isso, o pug bate na serra subindo.
-_MOLAS = [700, 1150, 1420, 1880, 2530]
-
-# Blocos solidos de grama: (x, altura da base acima do chao, largura, espessura).
-_BLOCOS = [
-    (1240, 0, 60, 130),        # pilar 1: alto, topo todo coberto de serra
-    (2620, 0, 60, 130),        # pilar 2: idem
-    (3000, 0, 260, 45),        # plataforma baixa, com serra no meio do topo
-    # o "C" suspenso, de boca para a esquerda: o pug entra voando pela mola de
-    # 1880 e pousa na barra de baixo. Os vaos internos tem 55 px, o suficiente
-    # para o pug (34 px) andar dentro sem encostar na barra de cima.
-    (2000, 155, 230, 45),      # barra de baixo
-    (2175, 155, 55, 255),      # perna direita, do chao da barra ao topo
-    (2000, 365, 230, 45),      # barra de cima
-    (2080, 255, 95, 45),       # barra do meio: a prateleira de dentro
-]
-
-# Serra presa em cima de um bloco: (x, altura da base acima do chao, largura)
-_ESPINHOS_ALTOS = [
-    (1240, 130, 60),           # topo do pilar 1
-    (2620, 130, 60),           # topo do pilar 2
-    (3140, 45, 50),            # topo da plataforma baixa: 140 px de pouso a esquerda
-    (2000, 410, 230),          # topo da barra de cima do "C"
-]
-
-# Serra pendurada, apontando para o chao: (x, altura da base, largura)
-_ESPINHOS_BAIXOS = [(2000, 139, 230)]      # embaixo da barra de baixo do "C"
-
-# A chave: (x, altura acima do chao) do centro. Fica no meio do trecho reto.
-_CHAVE = [(3560, 110)]
-
-PORTA_L = 72
-PORTA_A = 104
 _LIMITE_QUEDA = 80   # abaixo disso o corpo saiu do mundo (caiu por uma das bordas)
+_NASCER = 80         # x do jogador quando o mapa nao diz outra coisa
 
 
 class Nivel:
-    """Mapa reto: chao unico com espinhos, molas e a saida."""
+    """A fase jogavel: entidades montadas a partir de um mapa."""
 
-    def __init__(self, largura: int = LARGURA, altura: int = ALTURA, largura_mundo: int = LARGURA_MUNDO):
+    def __init__(self, largura: int = LARGURA, altura: int = ALTURA, mapa: dict | None = None):
 
         self.largura = largura
         self.altura = altura
-        self.largura_mundo = largura_mundo
-        # a porta precisa caber DENTRO do chao: se passar da borda, o jogador
-        # e expulso para fora dele quando bate nela
-        self.fim = _TRECHOS[-1][0] + _TRECHOS[-1][1] - PORTA_L - 12
-
-        self.jogador = Jogador(80, CHAO_Y - ALTURA_PERSONAGEM)
-        self.camera = Camera(largura, altura, largura_mundo, altura)
-        self.cenario = Cenario(largura, altura)
+        self.mapa = mapa if mapa is not None else mapa_mod.carregar()
+        self.largura_mundo = int(self.mapa["largura_mundo"])
+        self.chao_y = int(self.mapa["chao_y"])
 
         self.plataformas: list[Plataforma] = []
         self.obstaculos: list = []
@@ -99,7 +41,12 @@ class Nivel:
         self.itens: list = []
         self.inimigos: list = []
         self.explosoes: list[Explosao] = []
-        self._montar(ALTURA_CHAO)
+        self.porta = None
+        self._montar()
+
+        self.jogador = Jogador(*self._nascimento())
+        self.camera = Camera(largura, altura, self.largura_mundo, altura)
+        self.cenario = Cenario(largura, altura)
 
         self.solidos = (*tuple(o for o in self.obstaculos if o.solido), self.porta)
         self.perigosos = tuple(o for o in self.obstaculos if o.perigoso)
@@ -111,26 +58,23 @@ class Nivel:
         self.venceu = False
 
     # ----------------------------------------------------------- montagem
-    def _montar(self, altura_chao: int) -> None:
-        for x, comprimento in _TRECHOS:
-            self.plataformas.append(Plataforma(x, CHAO_Y, comprimento, altura_chao, chao=True))
-        for x, largura in _ESPINHOS:
-            self.obstaculos.append(Espinhos(x, CHAO_Y - ALTURA_ESPINHO, largura))
-        for x, altura, largura, espessura in _BLOCOS:
-            self.obstaculos.append(BlocoGrama(x, CHAO_Y - altura - espessura, largura, espessura))
-        for x, altura, largura in _ESPINHOS_ALTOS:
-            self.obstaculos.append(Espinhos(x, CHAO_Y - altura - ALTURA_ESPINHO, largura))
-        for x, altura, largura in _ESPINHOS_BAIXOS:
-            self.obstaculos.append(Espinhos(x, CHAO_Y - altura - ALTURA_ESPINHO, largura, para_baixo=True))
-        for x in _MOLAS:
-            self.molas.append(Mola(x, CHAO_Y - ALTURA_MOLA))
+    def _nascimento(self) -> tuple[float, float]:
+        """Onde o pug aparece: o mapa manda; sem isso, no comeco do chao."""
+        nascer = self.mapa.get("nascer") or {}
+        x = nascer.get("x", _NASCER)
+        y = nascer.get("y", self.chao_y - ALTURA_PERSONAGEM)
+        return float(x), float(y)
 
-        # a porta fica EM CIMA do chao reto: no plinto ela ficava acima da
-        # cabeca do jogador e ele passava por baixo sem esbarrar
-        self.porta = Porta(self.fim, CHAO_Y - PORTA_A, PORTA_L, PORTA_A)
-
-        for x, altura in _CHAVE:
-            self.itens.append(Chave(x - 11, CHAO_Y - altura - 13))
+    def _montar(self) -> None:
+        """Cria uma entidade para cada objeto do mapa, na lista certa."""
+        for o in self.mapa["objetos"]:
+            destino, entidade = mapa_mod.construir(o)
+            if destino == "porta":
+                self.porta = entidade
+            elif destino is not None:
+                getattr(self, destino).append(entidade)
+        if self.porta is None:      # mapa sem porta: uma no fim do chao, para a fase fechar
+            self.porta = Porta(self.largura_mundo - 84, self.chao_y - 104, 72, 104)
 
     # ------------------------------------------------------------- ciclo
     def atualizar(self, dt: float, keys) -> None:
@@ -141,14 +85,15 @@ class Nivel:
         for mola in self.molas:
             mola.mover(dt)
 
-        base_anterior = self.jogador.hitbox.bottom   # a mola precisa do topo cruzado
+        # a mola precisa saber onde o corpo estava: o gatilho e o cruzamento
+        anterior = self.jogador.hitbox.copy()
         self.jogador.controlar(keys)
         self.jogador.atualizar(dt, self.plataformas, self.solidos)
         for item in self.itens:
             if item.ativo:
                 item.atualizar(dt)
 
-        self._verificar_molas(base_anterior)
+        self._verificar_molas(anterior)
         self._verificar_espinhos()
         self.explosoes = [explosao for explosao in self.explosoes if explosao.atualizar(dt)]
         self._coletar()
@@ -163,14 +108,15 @@ class Nivel:
         if self.porta.aberta and self.jogador.hitbox.colliderect(self.porta.corpo):
             self.venceu = True
 
-    def _verificar_molas(self, base_anterior: int) -> None:
-        """Mola pisada: lanca o corpo, toca o boing e devolve um pulo no ar."""
+    def _verificar_molas(self, anterior: pygame.Rect) -> None:
+        """Mola cruzada: lanca o corpo, toca o boing e devolve um pulo no ar."""
         jogador = self.jogador
         if jogador.explodido:
             return
         for mola in self.molas:
-            if mola.lancar(jogador, base_anterior):
-                jogador.saltos_usados = min(jogador.saltos_usados, 1)   # sobra um pulo
+            if mola.lancar(jogador, anterior):
+                if mola.direcao == "cima":
+                    jogador.saltos_usados = min(jogador.saltos_usados, 1)   # sobra um pulo
                 sons.mola()
                 return
 

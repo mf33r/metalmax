@@ -1,0 +1,210 @@
+{
+  "versao": 1,
+  "nome": "nivel1",
+  "largura_mundo": 3830,
+  "chao_y": 656,
+  "nascer": {
+    "x": 80,
+    "y": 622
+  },
+  "objetos": [
+    {
+      "tipo": "chao",
+      "x": 0,
+      "y": 656,
+      "w": 3830,
+      "h": 90
+    },
+    {
+      "tipo": "espinho",
+      "x": 430,
+      "y": 640,
+      "w": 56,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 900,
+      "y": 640,
+      "w": 56,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 1620,
+      "y": 640,
+      "w": 56,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 2250,
+      "y": 640,
+      "w": 56,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 2880,
+      "y": 640,
+      "w": 56,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 3400,
+      "y": 640,
+      "w": 56,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 1240,
+      "y": 510,
+      "w": 60,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 2620,
+      "y": 510,
+      "w": 60,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 3140,
+      "y": 595,
+      "w": 50,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 2000,
+      "y": 230,
+      "w": 230,
+      "h": 16,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "espinho",
+      "x": 2000,
+      "y": 501,
+      "w": 230,
+      "h": 16,
+      "direcao": "baixo"
+    },
+    {
+      "tipo": "bloco",
+      "x": 1240,
+      "y": 526,
+      "w": 60,
+      "h": 130
+    },
+    {
+      "tipo": "bloco",
+      "x": 2620,
+      "y": 526,
+      "w": 60,
+      "h": 130
+    },
+    {
+      "tipo": "bloco",
+      "x": 3000,
+      "y": 611,
+      "w": 260,
+      "h": 45
+    },
+    {
+      "tipo": "bloco",
+      "x": 2000,
+      "y": 456,
+      "w": 230,
+      "h": 45
+    },
+    {
+      "tipo": "bloco",
+      "x": 2175,
+      "y": 246,
+      "w": 55,
+      "h": 255
+    },
+    {
+      "tipo": "bloco",
+      "x": 2000,
+      "y": 246,
+      "w": 230,
+      "h": 45
+    },
+    {
+      "tipo": "bloco",
+      "x": 2080,
+      "y": 356,
+      "w": 95,
+      "h": 45
+    },
+    {
+      "tipo": "mola",
+      "x": 700,
+      "y": 628,
+      "w": 32,
+      "h": 28,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "mola",
+      "x": 1150,
+      "y": 628,
+      "w": 32,
+      "h": 28,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "mola",
+      "x": 1420,
+      "y": 628,
+      "w": 32,
+      "h": 28,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "mola",
+      "x": 1880,
+      "y": 628,
+      "w": 32,
+      "h": 28,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "mola",
+      "x": 2530,
+      "y": 628,
+      "w": 32,
+      "h": 28,
+      "direcao": "cima"
+    },
+    {
+      "tipo": "chave",
+      "x": 3549,
+      "y": 533,
+      "w": 22,
+      "h": 26
+    },
+    {
+      "tipo": "porta",
+      "x": 3746,
+      "y": 552,
+      "w": 72,
+      "h": 104
+    }
+  ]
+}
