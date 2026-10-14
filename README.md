@@ -44,11 +44,13 @@ metal-max/
 └── src/
     ├── main.py                  mesmo jogo, callable por dentro de src/
     ├── assets.py                cache de imagens
+    ├── sons.py                  sons sintetizados em código (o estouro do espinho)
     ├── entidades/               os atores do jogo, cada um em seu arquivo
     │   ├── entidade.py          base: posição, hitbox, velocidade
     │   ├── animacao.py          corte das células do sprite sheet
     │   ├── jogador.py           classe Jogador
-    │   ├── obstaculos.py        Obstáculo (base) + Espinhos, Caixa
+    │   ├── obstaculos.py        Obstáculo (base) + Espinhos, Mola, CaixaSolida
+    │   ├── particulas.py        terra da explosão dos espinhos
     │   ├── ponte.py             Plataforma + plataforma móvel
     │   ├── itens.py             Coletável (base) + Moeda, Coração, Pedra, Chave
     │   └── inimigos.py          Inimigo (base) + 4 comportamentos

@@ -1,62 +1,54 @@
-"""Nivel: um mapa de teste bem simples — chao, algumas plataformas e caixas.
+"""Nivel: mapa reto — um chao unico, espinhos e molas no caminho e a saida.
 
-Sem inimigo, sem espinho e sem plataforma movel: e um tabuleiro para validar
-movimento, pulo, colisao, itens, HUD e o fim de fase (chave + porta).
+O chao nao tem buraco, plataforma nem caixa: os desafios sao a fileira de
+espinhos, que explode o corpo de quem encosta, e as molas, que jogam o pug para
+o alto. Sem inimigo e sem plataforma movel: e um tabuleiro para validar
+movimento, pulo, mola, espinhos e o fim de fase (chave + porta).
 """
 from __future__ import annotations
 
 import pygame
 
-from src.entidades.itens import Chave, Moeda
+from src import sons
+from src.entidades.itens import Chave
 from src.entidades.jogador import Jogador
+from src.entidades.particulas import Explosao
 from src.mundo.camera import Camera
 from src.mundo.cenario import Cenario
-from src.entidades.obstaculos import CaixaSolida
+from src.entidades.obstaculos import Espinhos, Mola
 from src.entidades.ponte import Plataforma
 from src.mundo.portao import Porta
 from src.ui.config import (
-    ALTURA_CHAO,
     ALTURA,
-    ALTURA_CAIXA,
+    ALTURA_CHAO,
+    ALTURA_ESPINHO,
+    ALTURA_MOLA,
     ALTURA_PERSONAGEM,
-    ALTURA_PLATAFORMA,
     CHAO_Y,
     LARGURA,
     LARGURA_MUNDO,
 )
 
-# Trechos de chao, separados por buracos.
-_TRECHOS = [(0, 1300), (1500, 1300), (3000, 1200)]
-LARGURA_BURACO = 200
+# Chao reto: um trecho so, sem buracos e sem plataforma.
+_TRECHOS = [(0, LARGURA_MUNDO)]
 
-# Plataformas: (x, altura acima do chao, largura)
-_PLATAFORMAS = [
-    (260, 70, 170),
-    (600, 130, 150),
-    (900, 70, 170),
-    (1620, 90, 170),
-    (2000, 150, 150),
-    (2380, 80, 170),
-    (3120, 100, 170),
-    (3460, 160, 150),
-    (3800, 100, 170),
-]
+# Espinhos no chao: (x, largura). Ate ~72 px de largura: um pulo simples cobre
+# 130 px no ar (0,5 s a 260 px/s), entao o vao cabe ate com folga de 30 px.
+_ESPINHOS = [(430, 64), (980, 72), (1620, 64), (2180, 72), (2760, 64), (3300, 72)]
 
-# Caixas no chao: (x)
-_CAIXAS = [520, 1150, 1780, 2560, 3260, 3980]
+# Molas no chao: (x). Ficam nos vaos livres, longe das serras.
+_MOLAS = [700, 1420, 2420, 3000]
 
-# Itens: (x, altura acima do chao) do centro
-_MOEDAS = [(340, 130), (1000, 130), (1700, 150), (3200, 160), (3880, 160)]
-_CHAVE = [(3530, 240)]
+# A chave: (x, altura acima do chao) do centro. Fica no meio do trecho reto.
+_CHAVE = [(3560, 110)]
 
-_LIMITE_QUEDA = 80
 PORTA_L = 72
 PORTA_A = 104
-PEDESTAL = 56       # a porta fica numa plinto, para nao se perder no cenario
+_LIMITE_QUEDA = 80   # abaixo disso o corpo saiu do mundo (caiu por uma das bordas)
 
 
 class Nivel:
-    """Mapa de teste: pouco chaco, poucas plataformas, caixa, itens e a saida."""
+    """Mapa reto: chao unico com espinhos, molas e a saida."""
 
     def __init__(self, largura: int = LARGURA, altura: int = ALTURA, largura_mundo: int = LARGURA_MUNDO):
 
@@ -64,7 +56,7 @@ class Nivel:
         self.altura = altura
         self.largura_mundo = largura_mundo
         # a porta precisa caber DENTRO do chao: se passar da borda, o jogador
-        # e expulso para o buraco quando bate nela
+        # e expulso para fora dele quando bate nela
         self.fim = _TRECHOS[-1][0] + _TRECHOS[-1][1] - PORTA_L - 12
 
         self.jogador = Jogador(80, CHAO_Y - ALTURA_PERSONAGEM)
@@ -73,12 +65,14 @@ class Nivel:
 
         self.plataformas: list[Plataforma] = []
         self.obstaculos: list = []
+        self.molas: list[Mola] = []
         self.itens: list = []
         self.inimigos: list = []
+        self.explosoes: list[Explosao] = []
         self._montar(ALTURA_CHAO)
 
         self.solidos = (*tuple(o for o in self.obstaculos if o.solido), self.porta)
-        self.perigosos = ()
+        self.perigosos = tuple(o for o in self.obstaculos if o.perigoso)
         self.pontos = 0
         self.moedas = 0
         self.pisados = 0
@@ -90,20 +84,15 @@ class Nivel:
     def _montar(self, altura_chao: int) -> None:
         for x, comprimento in _TRECHOS:
             self.plataformas.append(Plataforma(x, CHAO_Y, comprimento, altura_chao, chao=True))
-        for x, altura, comprimento in _PLATAFORMAS:
-            self.plataformas.append(Plataforma(x, CHAO_Y - altura, comprimento, ALTURA_PLATAFORMA))
-        for x in _CAIXAS:
-            self.obstaculos.append(CaixaSolida(x, CHAO_Y - ALTURA_CAIXA, ALTURA_CAIXA, ALTURA_CAIXA))
+        for x, largura in _ESPINHOS:
+            self.obstaculos.append(Espinhos(x, CHAO_Y - ALTURA_ESPINHO, largura))
+        for x in _MOLAS:
+            self.molas.append(Mola(x, CHAO_Y - ALTURA_MOLA))
 
-        # a porta fica EM CIMA do chao: no plinto ela ficava acima da cabeca
-        # do jogador, nao bloqueava e ele caia pela borda
-        self.plataformas.append(
-            Plataforma(self.fim - PORTA_L - 60, CHAO_Y - PEDESTAL, 100, ALTURA_PLATAFORMA)
-        )
+        # a porta fica EM CIMA do chao reto: no plinto ela ficava acima da
+        # cabeca do jogador e ele passava por baixo sem esbarrar
         self.porta = Porta(self.fim, CHAO_Y - PORTA_A, PORTA_L, PORTA_A)
 
-        for x, altura in _MOEDAS:
-            self.itens.append(Moeda(x - 13, CHAO_Y - altura - 13))
         for x, altura in _CHAVE:
             self.itens.append(Chave(x - 11, CHAO_Y - altura - 13))
 
@@ -113,13 +102,19 @@ class Nivel:
             plataforma.atualizar(dt)
         for obstaculo in self.obstaculos:
             obstaculo.mover(dt)
+        for mola in self.molas:
+            mola.mover(dt)
 
+        base_anterior = self.jogador.hitbox.bottom   # a mola precisa do topo cruzado
         self.jogador.controlar(keys)
         self.jogador.atualizar(dt, self.plataformas, self.solidos)
         for item in self.itens:
             if item.ativo:
                 item.atualizar(dt)
 
+        self._verificar_molas(base_anterior)
+        self._verificar_espinhos()
+        self.explosoes = [explosao for explosao in self.explosoes if explosao.atualizar(dt)]
         self._coletar()
         self.camera.seguir(self.jogador.pos, dt)
 
@@ -132,8 +127,33 @@ class Nivel:
         if self.porta.aberta and self.jogador.hitbox.colliderect(self.porta.corpo):
             self.venceu = True
 
+    def _verificar_molas(self, base_anterior: int) -> None:
+        """Mola pisada: lanca o corpo, toca o boing e devolve um pulo no ar."""
+        jogador = self.jogador
+        if jogador.explodido:
+            return
+        for mola in self.molas:
+            if mola.lancar(jogador, base_anterior):
+                jogador.saltos_usados = min(jogador.saltos_usados, 1)   # sobra um pulo
+                sons.mola()
+                return
+
+    def _verificar_espinhos(self) -> None:
+        """Encostar num espinho explode o corpo e deixa terra no lugar dele."""
+        jogador = self.jogador
+        if jogador.explodido:
+            return
+        for espinho in self.perigosos:
+            if jogador.hitbox.colliderect(espinho.corpo):
+                if jogador.explodir():
+                    sons.explosao()
+                    self.explosoes.append(Explosao(*jogador.hitbox.center, raio=jogador.hitbox.w / 2))
+                return
+
     def _coletar(self) -> None:
         jogador = self.jogador
+        if jogador.explodido:
+            return      # o corpo virou terra: nao ha mais quem colete
         for item in self.itens:
             if not item.ativo or not jogador.hitbox.colliderect(item.hitbox):
                 continue
@@ -155,13 +175,19 @@ class Nivel:
         for obstaculo in self.obstaculos:
             if self.camera.visivel(obstaculo.corpo):
                 obstaculo.desenhar(tela, self.camera)
+        for mola in self.molas:
+            if self.camera.visivel(mola.corpo):
+                mola.desenhar(tela, self.camera)
         for item in self.itens:
             if item.ativo and self.camera.visivel(item.hitbox):
                 item.desenhar(tela, self.camera)
         if self.camera.visivel(self.porta.corpo):
             self.porta.desenhar(tela, self.camera)
         self.jogador.desenhar(tela, self.camera)
+        for explosao in self.explosoes:
+            explosao.desenhar(tela, self.camera)
 
     @property
     def morto(self) -> bool:
-        return self.jogador.vidas <= 0
+        # a explosao segura o fim de jogo: a terra precisa voar antes da tela
+        return self.jogador.vidas <= 0 and not self.explosoes

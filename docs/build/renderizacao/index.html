@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.2">
 <title data-rh="true">Renderização | METAL MAX</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://metalmax.local/renderizacao"><meta data-rh="true" property="og:locale" content="pt_BR"><meta data-rh="true" name="docusaurus_locale" content="pt-BR"><meta data-rh="true" name="docsearch:language" content="pt-BR"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Renderização | METAL MAX"><meta data-rh="true" name="description" content="O jogo desenha em duas camadas com resoluções diferentes, e essa é a decisão"><meta data-rh="true" property="og:description" content="O jogo desenha em duas camadas com resoluções diferentes, e essa é a decisão"><link data-rh="true" rel="icon" href="/img/favicon.svg"><link data-rh="true" rel="canonical" href="https://metalmax.local/renderizacao"><link data-rh="true" rel="alternate" href="https://metalmax.local/renderizacao" hreflang="pt-BR"><link data-rh="true" rel="alternate" href="https://metalmax.local/renderizacao" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Renderização","item":"https://metalmax.local/renderizacao"}]}</script><link rel="stylesheet" href="/assets/css/styles.21cf0986.css">
-<script src="/assets/js/runtime~main.8bfaa56e.js" defer="defer"></script>
-<script src="/assets/js/main.954bc759.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.f36b1d43.js" defer="defer"></script>
+<script src="/assets/js/main.8313b870.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -47,11 +47,12 @@ maioria das entidades por quadro.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="ordem-de-pintura">Ordem de pintura<a href="#ordem-de-pintura" class="hash-link" aria-label="Link direto para Ordem de pintura" title="Link direto para Ordem de pintura" translate="no">​</a></h2>
 <ol>
 <li class="">céu e camadas de fundo (parallax)</li>
-<li class="">plataformas e obstáculos</li>
+<li class="">plataformas, obstáculos e molas</li>
 <li class="">itens</li>
 <li class="">inimigos</li>
 <li class="">porta</li>
-<li class="">jogador (por cima de tudo)</li>
+<li class="">jogador</li>
+<li class="">explosões de terra (por cima de todo o resto)</li>
 </ol></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Páginas de documento"><a class="pagination-nav__link pagination-nav__link--prev" href="/fisica"><div class="pagination-nav__sublabel">Anterior</div><div class="pagination-nav__label">Física e regras</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/niveis"><div class="pagination-nav__sublabel">Próxima</div><div class="pagination-nav__label">Nível</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#o-mundo-buffer-13-ampliado-sem-interpolação" class="table-of-contents__link toc-highlight">O mundo: buffer 1/3, ampliado sem interpolação</a></li><li><a href="#a-interface-resolução-cheia" class="table-of-contents__link toc-highlight">A interface: resolução cheia</a></li><li><a href="#coração-em-pixel-art" class="table-of-contents__link toc-highlight">Coração em pixel art</a></li><li><a href="#desenho-com-medida-proporcional" class="table-of-contents__link toc-highlight">Desenho com medida proporcional</a></li><li><a href="#culling" class="table-of-contents__link toc-highlight">Culling</a></li><li><a href="#ordem-de-pintura" class="table-of-contents__link toc-highlight">Ordem de pintura</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">METAL MAX — documentação do projeto.</div></div></div></footer></div>
 </body>
 </html>

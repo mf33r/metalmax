@@ -1,6 +1,8 @@
 """Paleta de cores, tirada da propria arte do pug.
 
-Vive separado do config para nao misturar numero de fisica com cor de tela.
+Vive separado do config para nao misturar numero de fisica com cor de tela. Os
+espinhos sao a unica excecao da paleta: cinza de metal, para o perigo saltar aos
+olhos num cenario quente.
 """
 
 CORES = {
@@ -21,8 +23,10 @@ CORES = {
     "plataforma": (255, 196, 74),
     "plataforma_topo": (255, 238, 150),
     "ponte": (96, 226, 255),
-    "espinho": (255, 74, 96),
-    "espinho_escura": (206, 40, 72),
+    "espinho": (198, 202, 208),
+    "espinho_escura": (120, 126, 138),
+    "mola": (232, 62, 62),
+    "mola_escura": (168, 32, 44),
     "caixa": (240, 170, 70),
     "caixa_escura": (150, 108, 68),
     "moeda": (255, 214, 60),

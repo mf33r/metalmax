@@ -81,6 +81,34 @@ A largura da barra do HUD era 3 px curta por item, e o número da quantidade
 saía do painel por cima do céu. Agora a largura soma exatamente o que cada
 parte desenha, e o teste confere cada peça contra o retângulo interno.
 
+## O estouro que saiu dobrado
+
+Para montar um `Sound` estéreo a partir de amostras mono, o buffer precisa ficar
+**intercalado**: `[L, R, L, R, ...]`. Repetir o array (`[a, b] * 2`) produz
+`[a, b, a, b]`, que o mixer lê como dois quadros: o som saía com metade da
+duração e o tom uma oitava acima. O conserto é escrever cada canal com passo
+(`dados[canal::canais] = amostras`), e o teste confere que os dois canais são
+idênticos.
+
+## A mola que passava em branco
+
+O primeiro gatilho da mola pedia `vel.y > 0` (caindo) e sobreposição. Duas quedas
+escapavam:
+
+1. a **25 px de quadro** (velocidade terminal) o corpo atravessa a mola e encosta
+   no chão no mesmo quadro — o pouso zera `vel.y` e a mola não disparava;
+2. andar de lado por cima da mola com o corpo já abaixo do topo.
+
+A solução foi olhar o **topo cruzado** (base anterior acima, base atual abaixo,
+mais sobreposição horizontal), como a física já faz para pousar em plataforma.
+Velocidade e sobreposição sozinhas não servem: uma queda rápida pula a mola
+inteira num quadro.
+
+O desenho também mentiu por um tempo: o prato era um retângulo preto com um
+vermelho por dentro, e no buffer de 1/3 da tela o prato tem 3 px — o preto de
+dentro engolia o vermelho e a mola saía uma barra escura. Agora o contorno é
+borda do retângulo colorido, e não o contrário.
+
 ## Regras que valem para o futuro
 
 - **Meça a tela, não confie no olho.** Brilho médio e variação de pixel pegaram

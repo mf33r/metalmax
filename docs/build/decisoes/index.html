@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.2">
 <title data-rh="true">Decisões e armadilhas | METAL MAX</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://metalmax.local/decisoes"><meta data-rh="true" property="og:locale" content="pt_BR"><meta data-rh="true" name="docusaurus_locale" content="pt-BR"><meta data-rh="true" name="docsearch:language" content="pt-BR"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Decisões e armadilhas | METAL MAX"><meta data-rh="true" name="description" content="Os bugs que já morderam este código, e por que o código é do jeito que é. Vale"><meta data-rh="true" property="og:description" content="Os bugs que já morderam este código, e por que o código é do jeito que é. Vale"><link data-rh="true" rel="icon" href="/img/favicon.svg"><link data-rh="true" rel="canonical" href="https://metalmax.local/decisoes"><link data-rh="true" rel="alternate" href="https://metalmax.local/decisoes" hreflang="pt-BR"><link data-rh="true" rel="alternate" href="https://metalmax.local/decisoes" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Decisões e armadilhas","item":"https://metalmax.local/decisoes"}]}</script><link rel="stylesheet" href="/assets/css/styles.21cf0986.css">
-<script src="/assets/js/runtime~main.8bfaa56e.js" defer="defer"></script>
-<script src="/assets/js/main.954bc759.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.f36b1d43.js" defer="defer"></script>
+<script src="/assets/js/main.8313b870.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -64,6 +64,29 @@ flutuava no teto.</p>
 <p>A largura da barra do HUD era 3 px curta por item, e o número da quantidade
 saía do painel por cima do céu. Agora a largura soma exatamente o que cada
 parte desenha, e o teste confere cada peça contra o retângulo interno.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="o-estouro-que-saiu-dobrado">O estouro que saiu dobrado<a href="#o-estouro-que-saiu-dobrado" class="hash-link" aria-label="Link direto para O estouro que saiu dobrado" title="Link direto para O estouro que saiu dobrado" translate="no">​</a></h2>
+<p>Para montar um <code>Sound</code> estéreo a partir de amostras mono, o buffer precisa ficar
+<strong>intercalado</strong>: <code>[L, R, L, R, ...]</code>. Repetir o array (<code>[a, b] * 2</code>) produz
+<code>[a, b, a, b]</code>, que o mixer lê como dois quadros: o som saía com metade da
+duração e o tom uma oitava acima. O conserto é escrever cada canal com passo
+(<code>dados[canal::canais] = amostras</code>), e o teste confere que os dois canais são
+idênticos.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="a-mola-que-passava-em-branco">A mola que passava em branco<a href="#a-mola-que-passava-em-branco" class="hash-link" aria-label="Link direto para A mola que passava em branco" title="Link direto para A mola que passava em branco" translate="no">​</a></h2>
+<p>O primeiro gatilho da mola pedia <code>vel.y &gt; 0</code> (caindo) e sobreposição. Duas quedas
+escapavam:</p>
+<ol>
+<li class="">a <strong>25 px de quadro</strong> (velocidade terminal) o corpo atravessa a mola e encosta
+no chão no mesmo quadro — o pouso zera <code>vel.y</code> e a mola não disparava;</li>
+<li class="">andar de lado por cima da mola com o corpo já abaixo do topo.</li>
+</ol>
+<p>A solução foi olhar o <strong>topo cruzado</strong> (base anterior acima, base atual abaixo,
+mais sobreposição horizontal), como a física já faz para pousar em plataforma.
+Velocidade e sobreposição sozinhas não servem: uma queda rápida pula a mola
+inteira num quadro.</p>
+<p>O desenho também mentiu por um tempo: o prato era um retângulo preto com um
+vermelho por dentro, e no buffer de 1/3 da tela o prato tem 3 px — o preto de
+dentro engolia o vermelho e a mola saía uma barra escura. Agora o contorno é
+borda do retângulo colorido, e não o contrário.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="regras-que-valem-para-o-futuro">Regras que valem para o futuro<a href="#regras-que-valem-para-o-futuro" class="hash-link" aria-label="Link direto para Regras que valem para o futuro" title="Link direto para Regras que valem para o futuro" translate="no">​</a></h2>
 <ul>
 <li class=""><strong>Meça a tela, não confie no olho.</strong> Brilho médio e variação de pixel pegaram
@@ -72,6 +95,6 @@ a tela preta e o mundo sumido.</li>
 o teste falha por estar em cima de uma caixa, não por estar errado.</li>
 <li class=""><strong>Fixe a versão das dependências</strong> e instale com <code>--ignore-scripts</code> quando o
 pacote não é do projeto.</li>
-</ul></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Páginas de documento"><a class="pagination-nav__link pagination-nav__link--prev" href="/niveis"><div class="pagination-nav__sublabel">Anterior</div><div class="pagination-nav__label">Nível</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#a-tela-preta-da-capa" class="table-of-contents__link toc-highlight">A tela preta da capa</a></li><li><a href="#o-teleport-de-436-px" class="table-of-contents__link toc-highlight">O teleport de 436 px</a></li><li><a href="#o-mapa-injogável" class="table-of-contents__link toc-highlight">O mapa injogável</a></li><li><a href="#o-vão-de-28-px" class="table-of-contents__link toc-highlight">O vão de 28 px</a></li><li><a href="#a-tela-em-branco-de-nada" class="table-of-contents__link toc-highlight">A tela em branco de nada</a></li><li><a href="#o-item-que-parecia-machado" class="table-of-contents__link toc-highlight">O item que parecia machado</a></li><li><a href="#a-porta-que-não-bloqueava" class="table-of-contents__link toc-highlight">A porta que não bloqueava</a></li><li><a href="#inimigos-sem-gravidade" class="table-of-contents__link toc-highlight">Inimigos sem gravidade</a></li><li><a href="#a-legenda-que-vazava" class="table-of-contents__link toc-highlight">A legenda que vazava</a></li><li><a href="#regras-que-valem-para-o-futuro" class="table-of-contents__link toc-highlight">Regras que valem para o futuro</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">METAL MAX — documentação do projeto.</div></div></div></footer></div>
+</ul></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Páginas de documento"><a class="pagination-nav__link pagination-nav__link--prev" href="/niveis"><div class="pagination-nav__sublabel">Anterior</div><div class="pagination-nav__label">Nível</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#a-tela-preta-da-capa" class="table-of-contents__link toc-highlight">A tela preta da capa</a></li><li><a href="#o-teleport-de-436-px" class="table-of-contents__link toc-highlight">O teleport de 436 px</a></li><li><a href="#o-mapa-injogável" class="table-of-contents__link toc-highlight">O mapa injogável</a></li><li><a href="#o-vão-de-28-px" class="table-of-contents__link toc-highlight">O vão de 28 px</a></li><li><a href="#a-tela-em-branco-de-nada" class="table-of-contents__link toc-highlight">A tela em branco de nada</a></li><li><a href="#o-item-que-parecia-machado" class="table-of-contents__link toc-highlight">O item que parecia machado</a></li><li><a href="#a-porta-que-não-bloqueava" class="table-of-contents__link toc-highlight">A porta que não bloqueava</a></li><li><a href="#inimigos-sem-gravidade" class="table-of-contents__link toc-highlight">Inimigos sem gravidade</a></li><li><a href="#a-legenda-que-vazava" class="table-of-contents__link toc-highlight">A legenda que vazava</a></li><li><a href="#o-estouro-que-saiu-dobrado" class="table-of-contents__link toc-highlight">O estouro que saiu dobrado</a></li><li><a href="#a-mola-que-passava-em-branco" class="table-of-contents__link toc-highlight">A mola que passava em branco</a></li><li><a href="#regras-que-valem-para-o-futuro" class="table-of-contents__link toc-highlight">Regras que valem para o futuro</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">METAL MAX — documentação do projeto.</div></div></div></footer></div>
 </body>
 </html>

@@ -73,8 +73,9 @@ maioria das entidades por quadro.
 ## Ordem de pintura
 
 1. céu e camadas de fundo (parallax)
-2. plataformas e obstáculos
+2. plataformas, obstáculos e molas
 3. itens
 4. inimigos
 5. porta
-6. jogador (por cima de tudo)
+6. jogador
+7. explosões de terra (por cima de todo o resto)

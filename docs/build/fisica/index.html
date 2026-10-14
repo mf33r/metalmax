@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.10.2">
 <title data-rh="true">Física e regras | METAL MAX</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://metalmax.local/fisica"><meta data-rh="true" property="og:locale" content="pt_BR"><meta data-rh="true" name="docusaurus_locale" content="pt-BR"><meta data-rh="true" name="docsearch:language" content="pt-BR"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Física e regras | METAL MAX"><meta data-rh="true" name="description" content="A física vive inteira em mundo/fisica.py, resolvida eixo a eixo: primeiro"><meta data-rh="true" property="og:description" content="A física vive inteira em mundo/fisica.py, resolvida eixo a eixo: primeiro"><link data-rh="true" rel="icon" href="/img/favicon.svg"><link data-rh="true" rel="canonical" href="https://metalmax.local/fisica"><link data-rh="true" rel="alternate" href="https://metalmax.local/fisica" hreflang="pt-BR"><link data-rh="true" rel="alternate" href="https://metalmax.local/fisica" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Física e regras","item":"https://metalmax.local/fisica"}]}</script><link rel="stylesheet" href="/assets/css/styles.21cf0986.css">
-<script src="/assets/js/runtime~main.8bfaa56e.js" defer="defer"></script>
-<script src="/assets/js/main.954bc759.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.f36b1d43.js" defer="defer"></script>
+<script src="/assets/js/main.8313b870.js" defer="defer"></script>
 </head>
 <body>
 <svg style="display: none;"><defs>
@@ -55,15 +55,42 @@ ar com força menor. O contador zera ao tocar o chão.</p>
 <p><code>Shift</code> ou <code>K</code> dá uma rajada horizontal a 580 px/s por 0,14 s, com recarga de
 0,55 s. During a rajada o movimento normal é ignorado; se bater em parede, ela
 acaba.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="molas">Molas<a href="#molas" class="hash-link" aria-label="Link direto para Molas" title="Link direto para Molas" translate="no">​</a></h2>
+<p>A mola é a única peça que devolve movimento ao jogador. O gatilho é o <strong>topo
+cruzado</strong>: se a base do corpo estava acima do topo da mola no quadro anterior e
+está abaixo agora (com sobreposição horizontal), o lançamento acontece — sem
+olhar a velocidade. Isso resolve dois casos de uma vez:</p>
+<ul>
+<li class="">andar de lado por cima da mola não dispara nada (a base já estava abaixo do
+topo desde o começo);</li>
+<li class="">numa queda a 25 px de quadro o corpo atravessa a mola <strong>e</strong> encosta no chão no
+mesmo quadro. Nessa hora <code>vel.y</code> já zerou, e um teste de velocidade deixaria a
+mola passar em branco.</li>
+</ul>
+<p>Subir por baixo também não dispara: a base anterior já está abaixo do topo.</p>
+<p>O impulso é <code>IMPULSO_MOLA</code> (900 px/s, ~200 px de altura) e a mola ainda devolve
+um salto no ar — <code>saltos_usados</code> volta para 1, nunca para 0, para não virar
+super-salto encadeado.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="dano">Dano<a href="#dano" class="hash-link" aria-label="Link direto para Dano" title="Link direto para Dano" translate="no">​</a></h2>
-<p>Tocar em espinho ou encostar de lado num inimigo tira vida e dá um repique. O
-repique <strong>não cancela um pulo mais forte</strong> — ser machucado no mesmo quadro do
-salto não pode apagar o salto.</p>
-<p>Depois de levar dano há 1,2 s de invulnerabilidade, e o corpo pisca.</p>
+<p>Encostar de lado num inimigo tira uma vida e dá um repique. O repique <strong>não
+cancela um pulo mais forte</strong> — ser machucado no mesmo quadro do salto não pode
+apagar o salto. Depois de levar dano há 1,2 s de invulnerabilidade, e o corpo
+pisca.</p>
+<p><strong>Espinho é outra coisa: não tira vida, mata.</strong> Encostar numa serra explode o
+corpo na hora (<code>Jogador.explodir</code>): a vida vai a zero, o sprite do pug some e o
+que sobra no lugar dele é uma nuvem de <strong>terra</strong> — nunca sangue. São 64 grumos
+marrom da paleta do cenário, disparados em todas as direções com um viés para
+cima, cada um com gravidade e vida própria; eles encolhem até sumir. A morte
+também toca um estouro sintetizado em <code>sons.py</code> (ver
+<a class="" href="/estrutura">Estrutura</a>).</p>
+<p>A explosão também segura o fim de jogo: <code>Nivel.morto</code> só é verdade depois que a
+última partícula morre, senão a tela de fim de jogo cobria a terra no primeiro
+quadro. Enquanto a terra voa, o corpo explodido não anda, não cai e não coleta
+nada.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="constantes">Constantes<a href="#constantes" class="hash-link" aria-label="Link direto para Constantes" title="Link direto para Constantes" translate="no">​</a></h2>
 <p>Todas vivem em <code>ui/config.py</code>:</p>
-<table><thead><tr><th>Constante</th><th>Valor</th><th>Papel</th></tr></thead><tbody><tr><td><code>GRAVIDADE</code></td><td>2000</td><td>queda</td></tr><tr><td><code>VEL</code></td><td>340</td><td>corrida</td></tr><tr><td><code>IMPULSO_PULO</code></td><td>560</td><td>primeiro pulo</td></tr><tr><td><code>IMPULSO_SEGUNDO_PULO</code></td><td>480</td><td>pulo duplo</td></tr><tr><td><code>VEL_INVESTIDA</code></td><td>580</td><td>rajada</td></tr><tr><td><code>COYOTE</code></td><td>0,12</td><td>tolerância na borda</td></tr><tr><td><code>BUFFER_PULO</code></td><td>0,14</td><td>tolerância antes de tocar o chão</td></tr><tr><td><code>TETO_QUEDA</code></td><td>1500</td><td>velocidade máxima de queda</td></tr></tbody></table>
+<table><thead><tr><th>Constante</th><th>Valor</th><th>Papel</th></tr></thead><tbody><tr><td><code>GRAVIDADE</code></td><td>2000</td><td>queda</td></tr><tr><td><code>VEL</code></td><td>260</td><td>corrida</td></tr><tr><td><code>IMPULSO_PULO</code></td><td>560</td><td>primeiro pulo</td></tr><tr><td><code>IMPULSO_SEGUNDO_PULO</code></td><td>480</td><td>pulo duplo</td></tr><tr><td><code>VEL_INVESTIDA</code></td><td>580</td><td>rajada</td></tr><tr><td><code>IMPULSO_MOLA</code></td><td>900</td><td>mola pisada</td></tr><tr><td><code>DURACAO_ESTICAR</code></td><td>0,18</td><td>tempo com a mola esmagada</td></tr><tr><td><code>COYOTE</code></td><td>0,12</td><td>tolerância na borda</td></tr><tr><td><code>BUFFER_PULO</code></td><td>0,14</td><td>tolerância antes de tocar o chão</td></tr><tr><td><code>TETO_QUEDA</code></td><td>1500</td><td>velocidade máxima de queda</td></tr></tbody></table>
 <p>O primeiro pulo rende ~78 px de altura, o duplo ~136 px. Os degraus do mapa têm
-40 px: sobra margem, então dá para_errar o salto sem ficar preso.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Páginas de documento"><a class="pagination-nav__link pagination-nav__link--prev" href="/classes"><div class="pagination-nav__sublabel">Anterior</div><div class="pagination-nav__label">Classes e herança</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/renderizacao"><div class="pagination-nav__sublabel">Próxima</div><div class="pagination-nav__label">Renderização</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#plataformas-de-sentido-único" class="table-of-contents__link toc-highlight">Plataformas de sentido único</a></li><li><a href="#degrau-automático" class="table-of-contents__link toc-highlight">Degrau automático</a></li><li><a href="#coyote-time-e-buffer" class="table-of-contents__link toc-highlight">Coyote time e buffer</a></li><li><a href="#pulo-duplo" class="table-of-contents__link toc-highlight">Pulo duplo</a></li><li><a href="#investida" class="table-of-contents__link toc-highlight">Investida</a></li><li><a href="#dano" class="table-of-contents__link toc-highlight">Dano</a></li><li><a href="#constantes" class="table-of-contents__link toc-highlight">Constantes</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">METAL MAX — documentação do projeto.</div></div></div></footer></div>
+40 px: sobra margem, então dá para_errar o salto sem ficar preso.</p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Páginas de documento"><a class="pagination-nav__link pagination-nav__link--prev" href="/classes"><div class="pagination-nav__sublabel">Anterior</div><div class="pagination-nav__label">Classes e herança</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/renderizacao"><div class="pagination-nav__sublabel">Próxima</div><div class="pagination-nav__label">Renderização</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#plataformas-de-sentido-único" class="table-of-contents__link toc-highlight">Plataformas de sentido único</a></li><li><a href="#degrau-automático" class="table-of-contents__link toc-highlight">Degrau automático</a></li><li><a href="#coyote-time-e-buffer" class="table-of-contents__link toc-highlight">Coyote time e buffer</a></li><li><a href="#pulo-duplo" class="table-of-contents__link toc-highlight">Pulo duplo</a></li><li><a href="#investida" class="table-of-contents__link toc-highlight">Investida</a></li><li><a href="#molas" class="table-of-contents__link toc-highlight">Molas</a></li><li><a href="#dano" class="table-of-contents__link toc-highlight">Dano</a></li><li><a href="#constantes" class="table-of-contents__link toc-highlight">Constantes</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">METAL MAX — documentação do projeto.</div></div></div></footer></div>
 </body>
 </html>

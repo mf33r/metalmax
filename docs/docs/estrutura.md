@@ -17,6 +17,7 @@ metal-max/
 └── src/
     ├── main.py             mesmo jogo, callable por dentro de src/
     ├── assets.py           cache de imagens
+    ├── sons.py             sons sintetizados em codigo (o estouro do espinho)
     ├── entidades/          os atores, cada um em seu arquivo
     ├── mundo/              cenário, câmera, física, nível e a porta
     └── ui/                 config, cores, HUD, capa e o loop
@@ -42,7 +43,8 @@ adiciona sozinho para o caso de alguém rodar por ele.
 | `entidades/entidade.py` | base de tudo: posição, hitbox, velocidade |
 | `entidades/animacao.py` | recorta as células do sprite sheet e anima |
 | `entidades/jogador.py` | classe `Jogador`: input, pulo, dano, investida |
-| `entidades/obstaculos.py` | `Obstaculo` (base) + `Espinhos`, `Caixa` |
+| `entidades/obstaculos.py` | `Obstaculo` (base) + `Espinhos` (explodem o corpo), `Mola`, `CaixaSolida` |
+| `entidades/particulas.py` | `Particula` + `Explosao`: a terra que voa quando um corpo explode |
 | `entidades/ponte.py` | `Plataforma` (superfície) + plataforma móvel |
 | `entidades/itens.py` | `Coletavel` (base) + moeda, coração, pedra, chave |
 | `entidades/inimigos.py` | `Inimigo` (base) + 4 comportamentos |
@@ -66,3 +68,18 @@ arquivo de novo.
 
 O caminho dos assets é resolvido a partir de `src/ui/config.py`, que conhece a
 raiz do projeto — então o jogo roda de qualquer diretório.
+
+## Sobre `sons.py`
+
+O projeto não tem arquivo de áudio: os dois sons são **sintetizados**, somas de
+ruído e seno feitas na mão.
+
+- **estouro da morte**: ruído filtrado (o corpo grave), estalo no ataque e um
+  assobio que cai de tom, com saturação para engordar;
+- **boing da mola**: um tom que sobe de 180 para ~1080 Hz e treme enquanto sobe
+  (vibrato de 26 Hz) — o tremor é o que faz soar molenga em vez de assobio.
+
+As amostras viram um `Sound` uma única vez, já com o volume de cada um, e ficam
+em cache. A taxa, os bits e os canais saem de `pygame.mixer.get_init()` — nada de
+supor 44100 Hz estéreo. Sem placa de som, ou com o mixer falhando, `explosao()` e
+`mola()` não fazem nada e o jogo segue mudo em vez de quebrar.

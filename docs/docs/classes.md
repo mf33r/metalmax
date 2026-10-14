@@ -11,15 +11,16 @@ Tudo no jogo descende de `Entidade`. A árvore completa:
 ```
 Entidade
 ├── Coletavel ─── Moeda · Coracao · Pedra · Chave
-├── Obstaculo ─── Espinhos · Caixa
+├── Obstaculo ─── Espinhos · CaixaSolida · Mola
+├── Particula
 ├── Plataforma ── PlataformaMovel
 └── CorpoFisico
     ├── Personagem ── Jogador
     └── Inimigo ───── Soldado · Guarda · Voador · Saltitante
 ```
 
-Fora da árvore, mas usando o mesmoVocabulário: `Camera`, `Cenario`, `Nivel`,
-`Porta`, `Hud`, `Menu`, `Aviso` e `Jogo`.
+Fora da árvore, mas usando o mesmoVocabulário: `Explosao`, `Camera`, `Cenario`,
+`Nivel`, `Porta`, `Hud`, `Menu`, `Aviso` e `Jogo`.
 
 ## A base
 
@@ -40,7 +41,9 @@ sprite pelos pés, para ele não flutuar acima do chão.
 - **coyote time** e **buffer de pulo** (ver [Física](./fisica.md))
 - **pulo duplo** — no máximo dois saltos por ciclo
 - **investida** — rajada horizontal com recarga
-- vida, invulnerabilidade depois de levar dano, e `pular` para descer da plataforma
+- vida, invulnerabilidade depois de levar dano, `pular` para descer da
+  plataforma e `explodir` — a morte dos espinhos, que zera a vida, apaga o
+  sprite e deixa a terra no lugar do corpo
 
 ## Inimigos
 
@@ -57,6 +60,18 @@ mudar só o comportamento, não a arte:
 Todos nascem do mesmo sprite do jogador, com a cor trocada por multiplicação:
 mesma textura, mesma luz, mesma pintura.
 
+## Explosão
+
+`Particula` é a única entidade que não colide nem reage a nada: é balística pura
+(gravidade, vida curta) que encolhe até sumir. `Explosao` é a nuvem inteira —
+sorteia as partículas em todas as direções e se declara morta quando a lista
+esvazia — e não é uma `Entidade`: ela vive numa lista do nível, que a descarta
+quando acaba.
+
+As cores vêm da paleta de terra do cenário. **Nunca há vermelho de sangue aqui**:
+o pug que morre no espinho vira terra, não respingo. Junto com a nuvem, o nível
+dispara um estouro de desenho animado — sintetizado em `sons.py`, não gravado.
+
 ## O que a base não faz
 
 `Entidade` não sabe nada de colisão. Quem resolve é `mundo/fisica.py`, que recebe
@@ -69,6 +84,14 @@ dependa de saber como a colisão foi calculada.
 registro no nível. As subclasses só dizem a cor da tarja e o valor. No
 cenário, **todo item é uma caixa** desenhada em código — os recortes do sprite
 ficavam pequenos demais e pareciam machados.
+
+## Obstáculos
+
+`Espinhos` mata e `CaixaSolida` bloqueia, mas `Mola` não faz nem uma coisa nem
+outra: é a única peça do mapa que **devolve movimento**. Ela não entra na lista
+de sólidos nem na de plataformas — o corpo atravessa — e quem decide o
+lançamento é `Mola.lancar(corpo, base_anterior)`, chamado pelo nível com a base
+do corpo no quadro anterior (ver [Física](./fisica.md)).
 
 ## Portas e plataformas
 

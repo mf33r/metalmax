@@ -28,6 +28,8 @@ ALTURA_CHAO = 90              # o chao e desenhado alto; a colisao so usa o topo
 ALTURA_ESPINHO = 16
 ALTURA_CAIXA = 30
 ALTURA_PORTA = 46
+LARGURA_MOLA = 32
+ALTURA_MOLA = 28
 
 # ------------------------------------------------------------------ fisica
 GRAVIDADE = 2000.0
@@ -45,6 +47,8 @@ COYOTE = 0.12
 BUFFER_PULO = 0.14
 DURACAO_ATRAVESSAR = 0.25
 ALCANCE_PISAO = 0.55          # fracao da altura do inimigo contada como "cabeca"
+IMPULSO_MOLA = 900.0          # prancha da mola: ~200 px de altura, bem mais que o pulo
+DURACAO_ESTICAR = 0.18        # tempo que a mola passa esmagada depois do salto
 
 # ------------------------------------------------------------- personagem
 CEL = 128                     # celula do sprite sheet (16x16)
@@ -80,6 +84,13 @@ VIDAS_MAX = 3
 INVULNERABILIDADE = 1.2
 DANO_INIMIGO = 1
 PONTOS_PISAO = 200
+
+# ----------------------------------------------------------------- particulas
+PARTICULAS_EXPLOSAO = 64      # grumos de terra num corpo que explode
+VEL_PARTICULA = 400.0
+GRAVIDADE_PARTICULA = 1500.0
+VIDA_PARTICULA = 0.7
+TAMANHO_PARTICULA = 4
 
 # ----------------------------------------------------------------- coletaveis
 MOEDA_VALOR = 10

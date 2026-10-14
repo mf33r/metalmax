@@ -39,9 +39,10 @@ Na capa, qualquer clique ou tecla começa o jogo, com um fade para preto.
 
 ## O jogo em uma frase
 
-Você atravessa trechos de chão com buracos, plataformas de sentido único, caixas
-e espinhos, junta a **chave** e chega à **porta de saída**. Sem a chave a porta é
-sólida e barra o caminho; com a chave ela abre e a fase é vencida.
+Você atravessa um chão reto, sem buraco e sem plataforma, pulando as serras de
+**espinhos** que explodem o pug em terra, junta a **chave** e chega à **porta de
+saída**. Sem a chave a porta é sólida e barra o caminho; com a chave ela abre e a
+fase é vencida.
 
 ## Onde começa
 

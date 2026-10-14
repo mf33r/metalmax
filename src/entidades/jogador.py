@@ -137,8 +137,11 @@ class Jogador(Personagem):
         self.investida_anterior = False
         self.mostrar_investida = False
         self.ultimo_dt = 0.0
+        self.explodido = False          # corpo virou terra no espinho
 
     def controlar(self, keys) -> None:
+        if self.explodido:
+            return                      # corpo explodido nao obedece mais
         direcao = keys[pygame.K_d] + keys[pygame.K_RIGHT] - keys[pygame.K_a] - keys[pygame.K_LEFT]
         self._controlar_investida(keys, direcao)
         if self.investida <= 0:
@@ -172,6 +175,8 @@ class Jogador(Personagem):
         self.baixo_anterior = descendo
 
     def atualizar(self, dt: float, plataformas: list, solidos: tuple = ()) -> None:
+        if self.explodido:
+            return                      # nao ha corpo para cair: a terra e o fim da linha
         self.invulneravel = max(0.0, self.invulneravel - dt)
         self.ultimo_dt = dt
         self.coyote = COYOTE if self.no_chao else max(0.0, self.coyote - dt)
@@ -198,9 +203,11 @@ class Jogador(Personagem):
             self.saltos_usados = 2
             self.pular(IMPULSO_SEGUNDO_PULO)   # pulo duplo no ar
 
-    # ----------------------------------------------------------------- dano
+    # -------------------------------------------------------------- desenho
     def desenhar(self, tela: pygame.Surface, camera) -> None:
         """Mesma arte da base, mais o rastro da investida."""
+        if self.explodido:
+            return                       # sobrou so a terra da explosao
         if self.investida <= 0:
             super().desenhar(tela, camera)
             return
@@ -229,6 +236,20 @@ class Jogador(Personagem):
         self.vel.y = min(self.vel.y, -IMPULSO_DANO)
         self.no_chao = False
         self.coyote = 0.0
+        return True
+
+    def explodir(self) -> bool:
+        """Espinho: o corpo explode de uma vez — sem repique e sem invulnerabilidade.
+
+        A vida vai a zero na hora e o desenho do pug some; quem chama usa o
+        retorno para criar as particulas de terra. Devolve False se o corpo ja
+        tinha explodido.
+        """
+        if self.explodido or self.vidas <= 0:
+            return False
+        self.vidas = 0
+        self.explodido = True
+        self.vel.update(0.0, 0.0)
         return True
 
     def curar(self, quantidade: int = 1) -> bool:
