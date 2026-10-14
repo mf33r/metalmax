@@ -37,23 +37,25 @@ class Obstaculo(Entidade):
 
 
 class Espinhos(Obstaculo):
-    """Serra de espinhos no chao: quem encosta explode em terra.
+    """Serra de espinhos: quem encosta explode em terra.
 
     Nao bloqueia a passagem — o corpo atravessa o retangulo e morre no mesmo
-    quadro. Pular por cima e a unica saida.
+    quadro. Pular por cima e a unica saida. Com `para_baixo`, os dentes apontam
+    para o chao, para pendurar a serra embaixo de uma viga.
     """
 
     perigoso = True
 
-    def __init__(self, x: int, y: int, largura: int, altura: int = ALTURA_ESPINHO):
+    def __init__(self, x: int, y: int, largura: int, altura: int = ALTURA_ESPINHO, para_baixo: bool = False):
         super().__init__(x, y, largura, altura)
+        self.para_baixo = para_baixo
 
     def desenhar(self, tela: pygame.Surface, camera) -> None:
         """Dentes proporcionais a altura da serra.
 
         As medidas saem do retangulo, nao de constantes: um contorno fixo de
-        4 px numa serra de 16 px engolia o vermelho e o espinho virava um
-        borrao escuro.
+        4 px numa serra de 16 px engolia a cor e o espinho virava um borrao
+        escuro.
         """
         alvo = camera.retangulo_na_tela(self.corpo)
         passo = max(6, round(alvo.h * 1.4))
@@ -61,8 +63,13 @@ class Espinhos(Obstaculo):
         contorno = max(1, round(alvo.h / 6))
         for esquerda in range(alvo.left, alvo.right, passo):
             largura = min(passo, alvo.right - esquerda)
-            pontos = [(esquerda, alvo.bottom), (esquerda + largura / 2, alvo.top), (esquerda + largura, alvo.bottom)]
-            pygame.draw.polygon(tela, CORES["espinho_escura"], [(x, y + sombra) for x, y in pontos])
+            if self.para_baixo:
+                pontos = [(esquerda, alvo.top), (esquerda + largura / 2, alvo.bottom), (esquerda + largura, alvo.top)]
+                deslocamento = -sombra
+            else:
+                pontos = [(esquerda, alvo.bottom), (esquerda + largura / 2, alvo.top), (esquerda + largura, alvo.bottom)]
+                deslocamento = sombra
+            pygame.draw.polygon(tela, CORES["espinho_escura"], [(x, y + deslocamento) for x, y in pontos])
             pygame.draw.polygon(tela, CORES["espinho"], pontos)
             pygame.draw.polygon(tela, CORES["contorno"], pontos, contorno)
 
@@ -127,6 +134,32 @@ class Mola(Obstaculo):
             caixa = pygame.Rect(alvo.left, y, alvo.w, prato)
             pygame.draw.rect(tela, CORES["mola"], caixa)
             pygame.draw.line(tela, CORES["contorno"], caixa.topleft, (caixa.right - 1, caixa.top), contorno)
+
+
+class BlocoGrama(Obstaculo):
+    """Bloco solido de grama: pilar, degrau, viga suspensa ou plataforma.
+
+    E o tijolo do cenario: bloqueia por todos os lados e da para pousar em
+    cima. O desenho e proporcional ao retangulo — a mesma peca serve para um
+    degrau de 80 px e para uma viga de 235 px.
+    """
+
+    solido = True
+
+    def desenhar(self, tela: pygame.Surface, camera) -> None:
+        alvo = camera.retangulo_na_tela(self.corpo)
+        borda = max(1, round(min(alvo.w, alvo.h) * 0.08))
+        pygame.draw.rect(tela, CORES["contorno"], alvo)
+        corpo = alvo.inflate(-2 * borda, -2 * borda)
+        pygame.draw.rect(tela, CORES["colina_escura"], corpo)
+        nucleo = corpo.inflate(-2 * borda, -2 * borda)
+        if nucleo.w > 0 and nucleo.h > 0:
+            pygame.draw.rect(tela, CORES["colina"], nucleo)
+        faixa = max(2, round(alvo.h * 0.16))
+        pygame.draw.rect(
+            tela, CORES["grama"],
+            pygame.Rect(alvo.x + borda, alvo.y + borda, alvo.w - 2 * borda, faixa),
+        )
 
 
 class CaixaSolida(Obstaculo):

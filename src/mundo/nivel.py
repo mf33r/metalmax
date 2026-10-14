@@ -15,7 +15,7 @@ from src.entidades.jogador import Jogador
 from src.entidades.particulas import Explosao
 from src.mundo.camera import Camera
 from src.mundo.cenario import Cenario
-from src.entidades.obstaculos import Espinhos, Mola
+from src.entidades.obstaculos import BlocoGrama, Espinhos, Mola
 from src.entidades.ponte import Plataforma
 from src.mundo.portao import Porta
 from src.ui.config import (
@@ -32,12 +32,42 @@ from src.ui.config import (
 # Chao reto: um trecho so, sem buracos e sem plataforma.
 _TRECHOS = [(0, LARGURA_MUNDO)]
 
-# Espinhos no chao: (x, largura). Ate ~72 px de largura: um pulo simples cobre
-# 130 px no ar (0,5 s a 260 px/s), entao o vao cabe ate com folga de 30 px.
-_ESPINHOS = [(430, 64), (980, 72), (1620, 64), (2180, 72), (2760, 64), (3300, 72)]
+# Espinhos no chao: (x, largura). 56 px e o teto confortavel: o pulo simples
+# fica 130 px no ar (0,5 s a 260 px/s) e precisa cobrir a serra mais o corpo
+# (56 + 30), sobrando ~10 quadros de folga para o dedo. Nenhuma fileira fica
+# embaixo do "C": a serra pendurada la em cima comeria a cabeca de quem pula.
+_ESPINHOS = [(430, 56), (900, 56), (1620, 56), (2250, 56), (2880, 56), (3400, 56)]
 
-# Molas no chao: (x). Ficam nos vaos livres, longe das serras.
-_MOLAS = [700, 1420, 2420, 3000]
+# Molas no chao: (x). 1150 e 2530 sao lancadoras: ficam 90 px antes de um pilar
+# de 130 px, que e alto demais para subir de pulo — o jeito e cair na mola. A
+# distancia e essa porque o voo da mola so passa dos 146 px (o topo da serra)
+# depois de 40 px: mais perto que isso, o pug bate na serra subindo.
+_MOLAS = [700, 1150, 1420, 1880, 2530]
+
+# Blocos solidos de grama: (x, altura da base acima do chao, largura, espessura).
+_BLOCOS = [
+    (1240, 0, 60, 130),        # pilar 1: alto, topo todo coberto de serra
+    (2620, 0, 60, 130),        # pilar 2: idem
+    (3000, 0, 260, 45),        # plataforma baixa, com serra no meio do topo
+    # o "C" suspenso, de boca para a esquerda: o pug entra voando pela mola de
+    # 1880 e pousa na barra de baixo. Os vaos internos tem 55 px, o suficiente
+    # para o pug (34 px) andar dentro sem encostar na barra de cima.
+    (2000, 155, 230, 45),      # barra de baixo
+    (2175, 155, 55, 255),      # perna direita, do chao da barra ao topo
+    (2000, 365, 230, 45),      # barra de cima
+    (2080, 255, 95, 45),       # barra do meio: a prateleira de dentro
+]
+
+# Serra presa em cima de um bloco: (x, altura da base acima do chao, largura)
+_ESPINHOS_ALTOS = [
+    (1240, 130, 60),           # topo do pilar 1
+    (2620, 130, 60),           # topo do pilar 2
+    (3140, 45, 50),            # topo da plataforma baixa: 140 px de pouso a esquerda
+    (2000, 410, 230),          # topo da barra de cima do "C"
+]
+
+# Serra pendurada, apontando para o chao: (x, altura da base, largura)
+_ESPINHOS_BAIXOS = [(2000, 139, 230)]      # embaixo da barra de baixo do "C"
 
 # A chave: (x, altura acima do chao) do centro. Fica no meio do trecho reto.
 _CHAVE = [(3560, 110)]
@@ -86,6 +116,12 @@ class Nivel:
             self.plataformas.append(Plataforma(x, CHAO_Y, comprimento, altura_chao, chao=True))
         for x, largura in _ESPINHOS:
             self.obstaculos.append(Espinhos(x, CHAO_Y - ALTURA_ESPINHO, largura))
+        for x, altura, largura, espessura in _BLOCOS:
+            self.obstaculos.append(BlocoGrama(x, CHAO_Y - altura - espessura, largura, espessura))
+        for x, altura, largura in _ESPINHOS_ALTOS:
+            self.obstaculos.append(Espinhos(x, CHAO_Y - altura - ALTURA_ESPINHO, largura))
+        for x, altura, largura in _ESPINHOS_BAIXOS:
+            self.obstaculos.append(Espinhos(x, CHAO_Y - altura - ALTURA_ESPINHO, largura, para_baixo=True))
         for x in _MOLAS:
             self.molas.append(Mola(x, CHAO_Y - ALTURA_MOLA))
 
