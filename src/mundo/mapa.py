@@ -25,7 +25,7 @@ from src.ui.config import CHAO_Y, LARGURA_MUNDO, RAIZ
 VERSAO = 1
 TIPOS = ("chao", "plataforma", "bloco", "caixa", "espinho", "mola", "moeda", "pedra", "chave", "porta")
 DIRECOES = ("cima", "baixo", "esquerda", "direita")
-MAPA_DO_REPO = "assets/mapas/nivel1.json"
+MAPA_DO_REPO = ("assets", "mapas", "nivel1.json")
 VARIAVEL_AMBIENTE = "METALMAX_MAPA"
 
 # tamanho de nascenca de cada peca: (largura, altura). O editor usa isso ao
@@ -81,12 +81,22 @@ def construir(o: dict):
     return None, None
 
 
+def _do_ambiente(nome: str) -> Path | None:
+    """Le uma variavel de ambiente como caminho, tolerando aspas.
+
+    No Windows e comum escrever `set METALMAX_MAPA="C:\\mapa.json"`, e as aspas
+    ficam dentro do valor: sem tirar, o caminho nao existe.
+    """
+    valor = os.environ.get(nome, "").strip().strip('"').strip("'")
+    return Path(valor).expanduser() if valor else None
+
+
 def caminho_padrao() -> Path:
     """`METALMAX_MAPA` quando existir; senao o mapa que vem no repo."""
-    escolhido = os.environ.get(VARIAVEL_AMBIENTE)
-    if escolhido:
-        return Path(escolhido).expanduser()
-    return RAIZ / MAPA_DO_REPO
+    escolhido = _do_ambiente(VARIAVEL_AMBIENTE)
+    if escolhido is not None:
+        return escolhido
+    return RAIZ.joinpath(*MAPA_DO_REPO)
 
 
 def padrao() -> dict:
