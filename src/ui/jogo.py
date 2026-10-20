@@ -53,6 +53,7 @@ class Jogo:
         self.hud = Hud()
         self.aviso = Aviso()
         self.nivel: Nivel | None = None
+        self.fase = 1                 # 1 = campo (mf33r); 2 = fase do boss
         self.estado = self.MENU
         self.opcoes_abertas = False
         self.fade = 0.0             # 0 = visivel, 1 = preto total
@@ -100,6 +101,7 @@ class Jogo:
     def _tratar_menu(self, evento: pygame.event.Event) -> None:
         acao = self.menu.atualizar(evento)
         if acao == "INICIAR":
+            self.fase = 1                      # sempre comeca pela fase do campo
             self.estado = self.ESCURECENDO     # fade para preto -> jogo aparece
         elif acao == "CONTROLES":
             self._abrir_opcoes()
@@ -126,6 +128,7 @@ class Jogo:
         if self.estado == self.MENU:
             self._fechar_opcoes()
             self.nivel = None
+            self.fase = 1
 
     def _terminar_fade(self) -> None:
         """A tela ja esta preta: comeca a fase e clareia de novo."""
@@ -133,11 +136,18 @@ class Jogo:
         self.menu.reiniciar()
 
     def iniciar_fase(self) -> None:
-        self.nivel = Nivel()
+        self.nivel = self._criar_nivel()
         self.estado = self.JOGANDO
         self.opcoes_abertas = False
         self._avisou_chave = False
         self.aviso.esconder()
+
+    def _criar_nivel(self):
+        """Cria o nivel da fase atual (fase 2 e importada aqui para nao acoplar)."""
+        if self.fase >= 2:
+            from src.mundo.fase2 import Fase2
+            return Fase2()
+        return Nivel()
 
     # ------------------------------------------------------------- update
     def atualizar(self, dt: float) -> None:
@@ -167,8 +177,12 @@ class Jogo:
             self.estado = self.FIM_DE_JOGO
             self.aviso.mostrar("FIM DE JOGO", "R para tentar de novo, ESC para o menu")
         elif self.nivel.venceu:
-            self.estado = self.VITORIA
-            self.aviso.mostrar("VITORIA!", f"{self.nivel.pontos} pontos - R para jogar de novo")
+            if self.fase < 2:                 # venceu a fase 1 -> vai para a fase do boss
+                self.fase = 2
+                self.estado = self.ESCURECENDO
+            else:
+                self.estado = self.VITORIA
+                self.aviso.mostrar("VITORIA!", f"{self.nivel.pontos} pontos - R para jogar de novo")
         elif self.nivel.tem_chave and not self._avisou_chave:
             self._avisou_chave = True
             self.aviso.mostrar("CHAVE!", "a porta de saida abriu - chegue nela")
@@ -184,6 +198,8 @@ class Jogo:
         else:
             self._desenhar_mundo()
             self.hud.desenhar(self.ui)
+            if hasattr(self.nivel, "desenhar_hud"):   # HUD extra da fase 2 (boss, poderes)
+                self.nivel.desenhar_hud(self.ui)
             if self.estado in (self.PAUSADO, self.FIM_DE_JOGO, self.VITORIA):
                 self.aviso.desenhar(self.ui)
 
