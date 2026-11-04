@@ -6,23 +6,25 @@ sidebar_position: 6
 
 # Nível
 
-Um mapa **reto**: um chão único de ponta a ponta, sem buraco, sem plataforma,
-sem caixa e sem inimigo. O único obstáculo é a fileira de espinhos — e cada um
-deles mata. No fim do caminho ficam a chave e a porta de saída.
+O primeiro mapa vem de `mapa.json` na raiz do projeto, carregado por
+`mundo/mapa.py` e montado por `mundo/nivel.py`. Ele define o terreno, os itens,
+os obstáculos e o ponto de nascimento; o HUD principal fica oculto nessa fase.
+O segundo mapa, `assets/mapas/fase2.json`, continua sendo carregado pela lógica
+específica da fase do boss.
 
-## Geometria
+## Leaderboard
 
-| Peça | Valor |
-|---|---|
-| chão | 1 trecho de 3830 px, sempre na mesma altura |
-| espinhos | 6 serras de 64 a 72 px, coladas no chão |
-| altura do espinho | 16 px |
-| molas | 4, de 32×28 px, coladas no chão |
-| itens no mapa | só a chave |
-| mundo | 3830 px |
+No menu inicial, pressione **L** para abrir a classificação dos melhores
+tempos. Ao começar, informe um nome; os controles permanecem até pressionar
+**Enter**. O prompt **Aperte Enter Para Começar** pisca em amarelo durante esse
+período e inicia a partida quando pressionado.
+O tempo da campanha, incluindo as duas fases, é salvo em `leaderboard.json`
+somente ao derrotar o boss.
+São mantidos os dez menores tempos.
 
-Tudo fica em listas curtas no topo de `mundo/nivel.py` (`_TRECHOS`, `_ESPINHOS`,
-`_MOLAS`, `_CHAVE`), para ajustar sem caçar pelo arquivo.
+Ao morrer, a partida retorna ao menu inicial. Ao vencer a segunda fase aparece
+**PARABÉNS!** por três segundos, depois o jogo retorna ao menu. O pulo normal e
+o pulo duplo têm um efeito sonoro sintetizado.
 
 ## Espinhos
 

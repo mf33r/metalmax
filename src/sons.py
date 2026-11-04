@@ -1,11 +1,7 @@
-"""Sonoplastia em codigo: o projeto nao usa arquivo de audio.
+"""Sonoplastia sintetizada em codigo; sem arquivos de áudio externos.
 
-Sao dois sons, ambos montados amostra a amostra: o **estouro** da morte (ruido
-filtrado, estalo no ataque e um assobio que cai de tom) e o **boing** da mola
-(tom que sobe depressa, tremendo como mola). Cada um vira um `Sound` uma unica
-vez; a taxa e os canais saem do mixer que ja estiver ligado.
-
-Sem placa de som — ou com o mixer falhando — o jogo segue mudo, sem quebrar.
+Pulo, explosao e mola sao gerados amostra a amostra. Cada som fica em cache
+apos o primeiro toque; sem mixer ou dispositivo de audio, o jogo segue mudo.
 """
 from __future__ import annotations
 
@@ -31,6 +27,11 @@ _MOLA_SUBE = 9.0             # rapidez da subida
 _MOLA_VIBRATO = 26.0         # Hz do tremor de mola
 _MOLA_TREMOR = 0.22          # profundidade do tremor
 _QUEDA_MOLA = 7.0            # o boing some depressa, mas nao num estalo
+
+DURACAO_PULO = 0.18
+VOLUME_PULO = 0.38
+_PULO_TOM_INICIAL = 420.0
+_PULO_SUBIDA = 650.0
 
 # Cache dos `Sound` gerados; cada um nasce no primeiro toque, ja com o volume.
 _sons: dict[str, pygame.mixer.Sound] = {}
@@ -111,11 +112,27 @@ def _gerar_mola(taxa: int, bits: int, canais: int) -> pygame.mixer.Sound:
             amostras.append(int(valor * 32767))
     return pygame.mixer.Sound(buffer=_embalar(amostras, canais))
 
+def _gerar_pulo(taxa: int, bits: int, canais: int) -> pygame.mixer.Sound:
+    """Chirp curto ascendente para o salto normal e o pulo duplo."""
+    total = int(taxa * DURACAO_PULO)
+    fase = 0.0
+    amostras = array.array("B" if bits == 8 else "h")
+    for i in range(total):
+        t = i / taxa
+        tom = _PULO_TOM_INICIAL + _PULO_SUBIDA * t / DURACAO_PULO
+        fase += math.tau * tom / taxa
+        valor = math.sin(fase) * math.exp(-9.0 * t) * 0.7
+        amostras.append(round(valor * 127) + 128 if bits == 8 else int(valor * 32767))
+    return pygame.mixer.Sound(buffer=_embalar(amostras, canais))
+
+
+
 
 # nome -> (gerador, volume). O `Sound` nasce no primeiro toque, ja no volume.
 _DEFINICOES = {
     "explosao": (_gerar_explosao, VOLUME_EXPLOSAO),
     "mola": (_gerar_mola, VOLUME_MOLA),
+    "pulo": (_gerar_pulo, VOLUME_PULO),
 }
 
 
@@ -140,3 +157,8 @@ def explosao() -> None:
 def mola() -> None:
     """Boing da mola que lanca o pug."""
     _tocar("mola")
+
+
+def pulo() -> None:
+    """Chirp tocado em cada pulo aceito."""
+    _tocar("pulo")

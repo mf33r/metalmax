@@ -14,6 +14,7 @@ import pygame
 from src.mundo.nivel import Nivel
 from src.ui.avisos import Aviso
 from src.ui.hud import Hud
+from src.ui.leaderboard import carregar as carregar_leaderboard, registrar as registrar_tempo
 from src.ui.menu import Menu
 from src.ui.config import ALTURA, CAPTION, ESCALA_PIXEL, FPS, LARGURA
 
@@ -58,6 +59,11 @@ class Jogo:
         self.opcoes_abertas = False
         self.fade = 0.0             # 0 = visivel, 1 = preto total
         self.rodando = True
+        self.menu.leaderboard = carregar_leaderboard()
+        self.nome_jogador = ""
+        self.tempo_partida = 0.0
+        self.tempo_registrado = False
+        self.vitoria_restante = 0.0
         self._avisou_chave = False
 
     @staticmethod
@@ -100,9 +106,13 @@ class Jogo:
 
     def _tratar_menu(self, evento: pygame.event.Event) -> None:
         acao = self.menu.atualizar(evento)
-        if acao == "INICIAR":
-            self.fase = 1                      # sempre comeca pela fase do campo
-            self.estado = self.ESCURECENDO     # fade para preto -> jogo aparece
+        if acao == "NOME_CONFIRMADO":
+            self.nome_jogador = self.menu.nome_input
+        elif acao == "INICIAR":
+            self.menu.abrindo = True
+            self.tempo_partida = 0.0
+            self.tempo_registrado = False
+            self.estado = self.ESCURECENDO
         elif acao == "CONTROLES":
             self._abrir_opcoes()
         elif acao == "SAIR":
@@ -129,6 +139,19 @@ class Jogo:
             self._fechar_opcoes()
             self.nivel = None
             self.fase = 1
+
+
+    def _retornar_menu_inicial(self) -> None:
+        """Descarta a partida concluída e restaura o menu inicial."""
+        self.estado = self.MENU
+        self.nivel = None
+        self.fase = 1
+        self.fade = 0.0
+        self._fechar_opcoes()
+        self.aviso.esconder()
+        self.menu.reiniciar()
+        self.menu.nome_input_ativo = False
+        self.menu.leaderboard_aberta = False
 
     def _terminar_fade(self) -> None:
         """A tela ja esta preta: comeca a fase e clareia de novo."""
@@ -158,6 +181,11 @@ class Jogo:
             return
         if self.fade > 0.0:          # clareando depois da transicao
             self.fade = max(0.0, self.fade - dt / DURACAO_FADE)
+        if self.estado == self.VITORIA:
+            self.vitoria_restante = max(0.0, self.vitoria_restante - dt)
+            if self.vitoria_restante <= 1e-6:
+                self._retornar_menu_inicial()
+            return
 
         if self.estado == self.MENU:
             self.menu.atualizar(None, dt)   # so anima o heroi do menu
@@ -166,6 +194,7 @@ class Jogo:
             return
 
         self.nivel.atualizar(dt, pygame.key.get_pressed())
+        self.tempo_partida += dt
         jogador = self.nivel.jogador
         self.hud.atualizar(
             jogador.vidas, self.nivel.pontos, self.nivel.moedas, self.nivel.pisados,
@@ -174,15 +203,18 @@ class Jogo:
         self.hud.atualizar_itens(self.nivel.coletados, self.nivel.tem_chave)
 
         if self.nivel.morto:
-            self.estado = self.FIM_DE_JOGO
-            self.aviso.mostrar("FIM DE JOGO", "R para tentar de novo, ESC para o menu")
+            self._retornar_menu_inicial()
         elif self.nivel.venceu:
-            if self.fase < 2:                 # venceu a fase 1 -> vai para a fase do boss
+            if self.fase < 2:
                 self.fase = 2
                 self.estado = self.ESCURECENDO
             else:
+                if not self.tempo_registrado:
+                    self.menu.leaderboard = registrar_tempo(self.nome_jogador, self.tempo_partida)
+                    self.tempo_registrado = True
                 self.estado = self.VITORIA
-                self.aviso.mostrar("VITORIA!", f"{self.nivel.pontos} pontos - R para jogar de novo")
+                self.vitoria_restante = 3.0
+                self.aviso.mostrar("PARABÉNS!", "Você venceu a segunda fase!")
         elif self.nivel.tem_chave and not self._avisou_chave:
             self._avisou_chave = True
             self.aviso.mostrar("CHAVE!", "a porta de saida abriu - chegue nela")
@@ -197,7 +229,8 @@ class Jogo:
             self.menu.desenhar(self.ui)
         else:
             self._desenhar_mundo()
-            self.hud.desenhar(self.ui)
+            if self.fase >= 2:
+                self.hud.desenhar(self.ui)
             if hasattr(self.nivel, "desenhar_hud"):   # HUD extra da fase 2 (boss, poderes)
                 self.nivel.desenhar_hud(self.ui)
             if self.estado in (self.PAUSADO, self.FIM_DE_JOGO, self.VITORIA):
