@@ -25,7 +25,7 @@ from src.ui.config import CHAO_Y, LARGURA_MUNDO, RAIZ
 VERSAO = 1
 TIPOS = ("chao", "plataforma", "bloco", "caixa", "espinho", "mola", "moeda", "pedra", "chave", "porta")
 DIRECOES = ("cima", "baixo", "esquerda", "direita")
-MAPA_DO_REPO = ("assets", "mapas", "nivel1.json")
+MAPA_DO_REPO = ("mapa.json",)
 VARIAVEL_AMBIENTE = "METALMAX_MAPA"
 
 # tamanho de nascenca de cada peca: (largura, altura). O editor usa isso ao

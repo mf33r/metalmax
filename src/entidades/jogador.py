@@ -12,6 +12,7 @@ from src import assets
 from src.entidades.entidade import CorpoFisico
 from src.entidades.animacao import Animacao
 from src.mundo.fisica import mover_e_colidir
+from src import sons
 from src.ui.config import (
     ALTURA_PERSONAGEM,
     BUFFER_PULO,
@@ -197,10 +198,12 @@ class Jogador(Personagem):
             self.pulo_pendente = 0.0
             self.coyote = 0.0
             self.saltos_usados = 1
+            sons.pulo()
             self.pular(IMPULSO_PULO)
         elif self.saltos_usados < 2:
             self.pulo_pendente = 0.0
             self.saltos_usados = 2
+            sons.pulo()
             self.pular(IMPULSO_SEGUNDO_PULO)   # pulo duplo no ar
 
     # -------------------------------------------------------------- desenho
@@ -221,7 +224,7 @@ class Jogador(Personagem):
         for passo in (2, 1):   # copias atras: da para ver a velocidade
             copia = sprite.copy()
             copia.set_alpha(70 - passo * 26)
-            tela.blit(copia, (x + round(self.vel.x * 0.02 * passo), y))
+            tela.blit(copia, (x - round(self.vel.x * 0.02 * passo), y))
         tela.blit(sprite, (x, y))
 
     # ----------------------------------------------------------------- dano
