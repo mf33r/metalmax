@@ -23,8 +23,8 @@ somente ao derrotar o boss.
 São mantidos os dez menores tempos.
 
 Ao morrer, a partida retorna ao menu inicial. Ao vencer a segunda fase aparece
-**PARABÉNS!** por três segundos, depois o jogo retorna ao menu. O pulo normal e
-o pulo duplo têm um efeito sonoro sintetizado.
+**PARABÉNS!** por três segundos, depois o jogo retorna ao menu. Explosão e mola
+têm efeitos sonoros sintetizados.
 
 ## Espinhos
 

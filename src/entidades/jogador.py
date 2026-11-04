@@ -12,7 +12,6 @@ from src import assets
 from src.entidades.entidade import CorpoFisico
 from src.entidades.animacao import Animacao
 from src.mundo.fisica import mover_e_colidir
-from src import sons
 from src.ui.config import (
     ALTURA_PERSONAGEM,
     BUFFER_PULO,
@@ -198,12 +197,10 @@ class Jogador(Personagem):
             self.pulo_pendente = 0.0
             self.coyote = 0.0
             self.saltos_usados = 1
-            sons.pulo()
             self.pular(IMPULSO_PULO)
         elif self.saltos_usados < 2:
             self.pulo_pendente = 0.0
             self.saltos_usados = 2
-            sons.pulo()
             self.pular(IMPULSO_SEGUNDO_PULO)   # pulo duplo no ar
 
     # -------------------------------------------------------------- desenho
